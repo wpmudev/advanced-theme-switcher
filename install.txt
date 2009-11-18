@@ -1,0 +1,12 @@
+Plugin Name: Advanced Theme Switcher
+Author: Austin Matzko (IncSub) 
+
+Files:
+----------------------------------------------------------------------
+advanced-theme-switcher/advanced-theme-switcher.php
+
+Instructions:
+----------------------------------------------------------------------
+1) Unzip the advanced-theme-switcher file into the /wp-content/plugins directory
+2) Activate the Advanced Theme Switcher Plugin on the Plugins admin page
+3) Add the theme switcher widget to a sidebar from the Widgets admin page.
