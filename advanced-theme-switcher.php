@@ -56,17 +56,47 @@ class ThemeSwitcherWidget extends WP_Widget {
 
 class ThemeSwitcher {
 
+	var $_queried_theme = ''; // the name of the theme queried
+
 	function ThemeSwitcher()
 	{
 		add_action('admin_init', array(&$this, 'setup_rewrite_rules'));
-		add_action('init', array(&$this, 'setup_rewrite_rules'));
 		add_action('init', array(&$this, 'event_init'));
+		add_action('setup_theme', array(&$this, 'setup_rewrite_rules'), 1);
+		add_action('setup_theme', array(&$this, 'event_setup_theme'));
 		add_action('widgets_init', array(&$this, 'event_widgets_init'));
 		
 		add_filter('stylesheet', array(&$this, 'get_stylesheet'));
 		add_filter('template', array(&$this, 'get_template'));
 		
 		register_activation_hook(__FILE__, array(&$this, 'flush_rewrite_rules'));
+	}
+
+	function event_init() {
+		load_plugin_textdomain('theme-switcher');
+		$expire = time() + 30000000;
+		if ( ! empty($_GET["wptheme"] ) ) {
+			setcookie(
+				"wptheme" . COOKIEHASH,
+				stripslashes($_GET["wptheme"]),
+				$expire,
+				COOKIEPATH
+			);
+			$redirect = trailingslashit(get_option('home'));
+			wp_redirect($redirect);
+			exit;
+		}
+	}
+	
+	function event_setup_theme()
+	{
+		// we have to query at this point to test whether the query is for a theme preview
+		$test_query = new WP();
+		$test_query->add_query_var('theme-preview');
+		$test_query->parse_request();
+		if ( isset( $test_query->query_vars ) && ! empty( $test_query->query_vars['theme-preview'] ) ) {
+			$this->_queried_theme = $test_query->query_vars['theme-preview'];
+		}
 	}
 
 	function event_widgets_init()
@@ -115,7 +145,14 @@ class ThemeSwitcher {
 	}
 
 	function get_current_theme() {
-		$query_theme = get_query_var('theme-preview');
+		$query_theme = '';
+
+		if ( ! empty( $this->_queried_theme ) ) {
+			$query_theme = $this->_queried_theme;
+		} else {
+			$query_theme = get_query_var('theme-preview');
+		}
+		
 		if ( ! empty( $query_theme ) ) {
 			return $query_theme;
 		} elseif ( ! empty($_COOKIE["wptheme" . COOKIEHASH] ) ) {
@@ -125,22 +162,6 @@ class ThemeSwitcher {
 		}
 	}
 
-	function event_init() {
-		load_plugin_textdomain('theme-switcher');
-		$expire = time() + 30000000;
-		if ( ! empty($_GET["wptheme"] ) ) {
-			setcookie(
-				"wptheme" . COOKIEHASH,
-				stripslashes($_GET["wptheme"]),
-				$expire,
-				COOKIEPATH
-			);
-			$redirect = trailingslashit(get_option('home'));
-			wp_redirect($redirect);
-			exit;
-		}
-	}
-	
 	/**
 	 * Flush the saved WordPress rewrite rules and rebuild them.
 	 */
