@@ -78,6 +78,7 @@ class ThemeSwitcher {
 
 	function ThemeSwitcher()
 	{
+		add_action('update_site_option_allowedthemes', array(&$this, 'flush_rewrite_rules'));
 		add_action('admin_init', array(&$this, 'setup_rewrite_rules'));
 		add_action('init', array(&$this, 'event_init'));
 		add_action('setup_theme', array(&$this, 'setup_rewrite_rules'), 1);
@@ -93,16 +94,13 @@ class ThemeSwitcher {
 	function event_init() {
 		load_plugin_textdomain('theme-switcher');
 		$expire = time() + 30000000;
-		if ( ! empty($_GET["wptheme"] ) ) {
+		if ( ! empty($this->_queried_theme) ) {
 			setcookie(
 				"wptheme" . COOKIEHASH,
-				stripslashes($_GET["wptheme"]),
+				stripslashes($this->_queried_theme),
 				$expire,
 				COOKIEPATH
 			);
-			$redirect = trailingslashit(get_option('home'));
-			wp_redirect($redirect);
-			exit;
 		}
 	}
 	
