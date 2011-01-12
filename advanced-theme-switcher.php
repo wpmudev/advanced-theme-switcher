@@ -4,9 +4,10 @@
 Plugin Name: Advanced Theme Switcher
 Plugin URI: http://incsub.com
 Description: Allow your users to switch themes, and view each theme on its own custom page.
-Version: 1.0.2
+Version: 1.0.3
 Author: Austin Matzko (IncSub) 
 Author URI: http://incsub.com
+WDP ID: 112
 
 Adapted from Ryan Boren's theme switcher, which was based on Alex King's style switcher.
 http://www.alexking.org/software/wordpress/
