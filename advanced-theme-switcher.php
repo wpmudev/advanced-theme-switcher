@@ -34,8 +34,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 if ( !class_exists('Advanced_Theme_Switcher') ):
 class Advanced_Theme_Switcher {
 
-    /** @var string $text_domain The text domain of the plugin */
-    var $text_domain = 'advanced_theme_switcher';
     /** @var string $queried_theme The name of the theme queried */
 	var $queried_theme = '';
 
@@ -73,13 +71,15 @@ class Advanced_Theme_Switcher {
      * @return void
      **/
     function load_plugin_textdomain() {
-        $plugin_dir = $this->plugin_dir . 'languages';
-        load_plugin_textdomain( $this->text_domain, null, $plugin_dir );
+        $plugin_dir = WP_PLUGIN_DIR . '/' . str_replace( basename(__FILE__), '', plugin_basename(__FILE__) ) . 'languages';
+        load_plugin_textdomain( 'theme-switcher', null, $plugin_dir );
     }
 
     /**
-     * @todo REMOVE. Use global $wp_query
-     */
+     * Parse the queried theme var.
+     *
+     * @return void
+     **/
 	function parse_theme_preview_request() {
 		$theme_preview_query = new WP();
 		$theme_preview_query->add_query_var('theme-preview');
@@ -267,18 +267,18 @@ class Advanced_Theme_Switcher_Widget extends WP_Widget {
 	function form( $instance ) {
 		$type = ( isset( $instance['displaytype'] ) ) ? $instance['displaytype'] : NULL; ?>
 
-		<p><label for="<?php echo $this->get_field_id('displaytype'); ?>"><?php _e('Display themes as:', 'theme-switcher'); ?></label></p>
+		<p><label for="<?php echo $this->get_field_id('displaytype'); ?>"><?php _e( 'Display themes as:', 'theme-switcher' ); ?></label></p>
 		<p>
 			<span><input type="radio" name="<?php echo $this->get_field_name('displaytype'); ?>" value="list" <?php
 				if ( 'list' == $type ) {
 					echo ' checked="checked"';
 				}
-			?> /> <?php _e('List', 'theme-switcher'); ?></span>
+			?> /> <?php _e( 'List', 'theme-switcher' ); ?></span>
 			<span><input type="radio" name="<?php echo $this->get_field_name('displaytype'); ?>" value="dropdown" <?php 
 				if ( 'dropdown' == $type ) {
 					echo ' checked="checked"';
 				}
-			?>/> <?php _e('Dropdown', 'theme-switcher'); ?></span>
+			?>/> <?php _e( 'Dropdown', 'theme-switcher' ); ?></span>
 		</p>
 		<?php
 	}

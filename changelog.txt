@@ -1,0 +1,9 @@
+=== Advanced Theme Switcher ===
+Authors: Ivan Shaovchev, Austin Matzko (Incsub)
+
+== Changelog ==
+
+= 1.0.4 =
+* Compatibility update for WordPress 3.1
+* Internal architecture improved
+* Bug fixes
