@@ -4,14 +4,14 @@
 Plugin Name: Advanced Theme Switcher
 Plugin URI: http://premium.wpmudev.org/project/advanced-theme-switcher
 Description: Advanced Theme Switcher allows BuddyPress and Multisite users the chance to switch between different themes, or you the opportunity to profile different theme designs on a BuddyPress or Multisite.
-Version: 1.0.4
-Author: Ivan Shaovchev, Austin Matzko (Incsub)
-Author URI: http://ivan.sh
+Version: 1.0.5
+Author: Ivan Shaovchev, Austin Matzko, Andrey Shipilov (Incsub)
+Author URI: http://premium.wpmudev.org/
 WDP ID: 112
 License: GNU General Public License (Version 2 - GPLv2)
-*/ 
+*/
 
-/* 
+/*
 Copyright 2007-2011 Incsub (http://incsub.com)
 
 This program is free software; you can redistribute it and/or modify
@@ -43,9 +43,13 @@ class Advanced_Theme_Switcher {
      * @return void
      **/
 	function Advanced_Theme_Switcher() {
-        register_activation_hook( __FILE__, array( &$this, 'add_rewrite_endpoint' ) );
+
+        //add new rewrite rules
+        register_activation_hook( __FILE__, array( &$this, 'update_rewrite_rules' ) );
+        add_filter( 'rewrite_rules_array', array( &$this, 'insert_rewrite_rules' ) );
+        add_filter( 'query_vars', array( &$this, 'insert_query_vars' ) );
+
         add_action( 'setup_theme', array( &$this, 'parse_theme_preview_request' ) );
-        add_action( 'init', array( &$this, 'add_rewrite_endpoint' ) );
         add_action( 'init', array( &$this, 'set_cookie' ) );
         add_action( 'init', array( &$this, 'load_plugin_textdomain' ) );
         add_action( 'widgets_init', array( &$this, 'widget_init' ) );
@@ -89,23 +93,33 @@ class Advanced_Theme_Switcher {
 		}
 	}
 
+
     /**
-     * Add rewrite endpoint and flush relues if necessary.
-     *
-     * @uses add_rewrite_endpoint();
-     * @uses flush_rewrite_rules();
+     * Update rewrite_rules
      *
      * @return void
+     */
+    function update_rewrite_rules() {
+        flush_rewrite_rules( false );
+    }
+
+    /**
+     * Adding a new rule
      **/
-	function add_rewrite_endpoint() {
-        /* Add rewrite point. This will add the "theme-preview" to the root rewrite */
-        add_rewrite_endpoint( 'theme-preview', EP_ROOT );
-        /* Get available rewrite rules */
-        $rewrite_rules = get_option('rewrite_rules');
-        /* If our rewrite rule is missing flush the rules so they can be recreated */
-        if ( !array_key_exists( 'theme-preview(/(.*))?/?$', $rewrite_rules ) )
-            flush_rewrite_rules();
-	}
+    function insert_rewrite_rules( $rules ) {
+        $newrules = array();
+        $newrules['theme-preview(/(.*))?/?$'] = 'index.php?&theme-preview=$matches[2]';
+        return $newrules + $rules;
+    }
+
+    /**
+     * Adding the var
+     **/
+    function insert_query_vars( $vars ) {
+        array_push( $vars, 'theme-preview' );
+        return $vars;
+    }
+
 
     /**
      * Initiate plugin widget.
@@ -120,7 +134,7 @@ class Advanced_Theme_Switcher {
      *  Filter stylesheet path
      *
      * @param <type> $stylesheet
-     * @return <type> 
+     * @return <type>
      */
 	function get_stylesheet( $stylesheet ) {
         /* Get theme name */
@@ -141,7 +155,7 @@ class Advanced_Theme_Switcher {
      * Filter template path
      *
      * @param <type> $template
-     * @return <type> 
+     * @return <type>
      */
 	function get_template( $template ) {
         /* Get theme name */
@@ -154,7 +168,7 @@ class Advanced_Theme_Switcher {
 			return $template;
 		/* Don't let people peek at unpublished themes. */
 		if ( isset($theme['Status'] ) && $theme['Status'] != 'publish' )
-			return $template;		
+			return $template;
 		return $theme['Template'];
 	}
 
@@ -170,6 +184,7 @@ class Advanced_Theme_Switcher {
 		} else {
 			$queried_theme = get_query_var('theme-preview');
 		}
+
 		/* Get theme name from cookie if no var is set */
 		if ( !empty( $queried_theme ) ) {
 			return $queried_theme;
@@ -202,7 +217,7 @@ class Advanced_Theme_Switcher {
         }
 
 		$theme_names = array_keys( (array) $themes );
-        
+
 		foreach ( $theme_names as $theme_name ) {
 			/* Skip unpublished themes. */
 			if ( empty( $theme_name ) || isset( $themes[$theme_name]['Status'] ) && $themes[$theme_name]['Status'] != 'publish' )
@@ -213,23 +228,23 @@ class Advanced_Theme_Switcher {
 				$theme_data[$theme_name] = add_query_arg( 'theme-preview', urlencode( $theme_name ), get_option('home') );
 			}
 		}
-		
+
 		ksort( $theme_data );
 
-		$ts = '<ul id="themeswitcher">'."\n";		
+		$ts = '<ul id="themeswitcher">'."\n";
 
 		if ( $style == 'dropdown' )
 			$ts .= '<li>'."\n\t" . '<select name="themeswitcher" onChange="location.href=this.options[this.selectedIndex].value;">'."\n";
 
         $default_theme = get_current_theme();
 		$current_theme = $this->get_current_theme_name();
-        
+
 		foreach ( $theme_data as $theme_name => $url ) {
 			if ( !empty( $current_theme ) && $current_theme == $theme_name || empty( $current_theme ) && ( $theme_name == $default_theme ) ) {
 				$pattern = ( 'dropdown' == $style ) ? '<option value="%1$s" selected="selected">%2$s</option>' : '<li>%2$s</li>';
 			} else {
 				$pattern = ( 'dropdown' == $style ) ? '<option value="%1$s">%2$s</option>' : '<li><a href="%1$s">%2$s</a></li>';
-			}				
+			}
 			$ts .= sprintf( $pattern, esc_attr( $url ), esc_html( $theme_name ) );
 		}
 
@@ -247,7 +262,7 @@ endif;
  **/
 if ( !class_exists('Advanced_Theme_Switcher_Widget') ):
 class Advanced_Theme_Switcher_Widget extends WP_Widget {
-    
+
 	function Advanced_Theme_Switcher_Widget() {
 		return $this->WP_Widget( 'theme-switcher-widget', __( 'Theme Switcher Widget', 'theme-switcher' ), array( 'description' => __( 'A widget with options for switching themes.', 'theme-switcher' ) ) );
 	}
@@ -274,7 +289,7 @@ class Advanced_Theme_Switcher_Widget extends WP_Widget {
 					echo ' checked="checked"';
 				}
 			?> /> <?php _e( 'List', 'theme-switcher' ); ?></span>
-			<span><input type="radio" name="<?php echo $this->get_field_name('displaytype'); ?>" value="dropdown" <?php 
+			<span><input type="radio" name="<?php echo $this->get_field_name('displaytype'); ?>" value="dropdown" <?php
 				if ( 'dropdown' == $type ) {
 					echo ' checked="checked"';
 				}

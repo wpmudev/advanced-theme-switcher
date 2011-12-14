@@ -1,7 +1,10 @@
 === Advanced Theme Switcher ===
-Authors: Ivan Shaovchev, Austin Matzko (Incsub)
+Authors: Ivan Shaovchev, Austin Matzko, Andrey Shipilov (Incsub)
 
 == Changelog ==
+
+= 1.0.5 =
+* Fixed rewrite rules;
 
 = 1.0.4 =
 * Compatibility update for WordPress 3.1
