@@ -4,7 +4,7 @@
 Plugin Name: Advanced Theme Switcher
 Plugin URI: http://premium.wpmudev.org/project/advanced-theme-switcher
 Description: Advanced Theme Switcher allows BuddyPress and Multisite users the chance to switch between different themes, or you the opportunity to profile different theme designs on a BuddyPress or Multisite.
-Version: 1.0.5
+Version: 1.0.6
 Author: Ivan Shaovchev, Austin Matzko, Andrey Shipilov (Incsub)
 Author URI: http://premium.wpmudev.org/
 WDP ID: 112
@@ -184,6 +184,8 @@ class Advanced_Theme_Switcher {
 		} else {
 			$queried_theme = get_query_var('theme-preview');
 		}
+
+        $queried_theme =  urldecode( $queried_theme );
 
 		/* Get theme name from cookie if no var is set */
 		if ( !empty( $queried_theme ) ) {
