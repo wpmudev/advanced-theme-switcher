@@ -1,0 +1,70 @@
+# Translation of the WordPress plugin Advanced Theme Switcher 1.0.7 by Ivan Shaovchev, Austin Matzko, Andrey Shipilov, Paul Menard (Incsub).
+# Copyright (C) 2012 Ivan Shaovchev, Austin Matzko, Andrey Shipilov, Paul Menard (Incsub)
+# This file is distributed under the same license as the Advanced Theme Switcher package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Advanced Theme Switcher 1.0.7\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/advanced-theme-switcher\n"
+"POT-Creation-Date: 2012-04-19 09:00-0500\n"
+"PO-Revision-Date: 2012-04-19 10:01-0500\n"
+"Last-Translator: Paul Menard <paul@codehooligans.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: English\n"
+
+#: advanced-theme-switcher.php:96
+msgid "Themes"
+msgstr ""
+
+#: advanced-theme-switcher.php:301
+msgid "Advanced Theme Switcher Widget"
+msgstr ""
+
+#: advanced-theme-switcher.php:301
+msgid "A widget with options for switching themes."
+msgstr ""
+
+#: advanced-theme-switcher.php:307
+msgid "Theme Switcher"
+msgstr ""
+
+#: advanced-theme-switcher.php:319
+msgid "Display themes as:"
+msgstr ""
+
+#: advanced-theme-switcher.php:325
+msgid "List"
+msgstr ""
+
+#: advanced-theme-switcher.php:330
+msgid "Dropdown"
+msgstr ""
+
+#: advanced-theme-switcher.php:345
+msgid "Please install the latest version of <a href=\"http://premium.wpmudev.org/project/update-notifications/\" title=\"Download Now &raquo;\">our free Update Notifications plugin</a> which helps you stay up-to-date with the most stable, secure versions of WPMU DEV themes and plugins. <a href=\"http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-information/\">More information &raquo;</a>"
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "Advanced Theme Switcher"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://premium.wpmudev.org/project/advanced-theme-switcher"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "Advanced Theme Switcher allows BuddyPress and Multisite users the chance to switch between different themes, or you the opportunity to profile different theme designs on a BuddyPress or Multisite."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Ivan Shaovchev, Austin Matzko, Andrey Shipilov, Paul Menard (Incsub)"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://premium.wpmudev.org/"
+msgstr ""
+

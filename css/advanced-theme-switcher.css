@@ -1,0 +1,17 @@
+#wpadminbar #wp-admin-bar-advanced-theme-switcher-menu-sub  a {
+    height: 1px;
+    line-height: 1px;
+}
+
+
+#wpadminbar #wp-admin-bar-advanced-theme-switcher-menu-sub select.advanced-theme-switcher-themes {
+	width: 100%;
+	color: #000000;
+	text-shadow: none;
+}
+
+#wpadminbar #wp-admin-bar-advanced-theme-switcher-menu-sub select.advanced-theme-switcher-themes option {
+	color: #000000;
+	text-shadow: none;
+	line-height: 12px;	
+}
