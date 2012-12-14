@@ -4,8 +4,8 @@
 Plugin Name: Advanced Theme Switcher
 Plugin URI: http://premium.wpmudev.org/project/advanced-theme-switcher
 Description: Advanced Theme Switcher allows BuddyPress and Multisite users the chance to switch between different themes, or you the opportunity to profile different theme designs on a BuddyPress or Multisite.
-Version: 1.0.7
-Author: Ivan Shaovchev, Austin Matzko, Andrey Shipilov, Paul Menard (Incsub)
+Version: 1.0.8
+Author: Paul Menard (Incsub)
 Author URI: http://premium.wpmudev.org/
 WDP ID: 112
 License: GNU General Public License (Version 2 - GPLv2)
@@ -28,322 +28,416 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+
+// Support for WPMU DEV Dashboard plugin
+include_once( dirname(__FILE__) . '/lib/dash-notices/wpmudev-dash-notification.php');
+
 /**
  * Advanced Theme Switcher Class
  **/
 
-if ( !class_exists('Advanced_Theme_Switcher') ):
-class Advanced_Theme_Switcher {
+if ( !class_exists('Advanced_Theme_Switcher') ) {
+	class Advanced_Theme_Switcher {
 
-    /** @var string $queried_theme The name of the theme queried */
-	var $queried_theme = '';
-
-    /**
-     * Constructor.
-     *
-     * @return void
-     **/
-	function Advanced_Theme_Switcher() {
-
-        add_action( 'setup_theme', 				array( &$this, 'parse_theme_preview_request' ) );
-        add_action( 'init', 					array( &$this, 'set_cookie' ) );
-        add_action( 'init', 					array( &$this, 'load_plugin_textdomain' ) );
-        add_action( 'widgets_init', 			array( &$this, 'widget_init' ) );
-
-		add_filter( 'stylesheet', 				array (&$this, 'get_stylesheet' ) );
-		add_filter( 'template', 				array( &$this, 'get_template' ) );
-		
-		add_action( 'admin_bar_menu', 			array( &$this, 'add_nodes_and_groups_to_toolbar'), 999 );
-		add_action( 'wp_print_styles', 			array( &$this, 'load_css'));
-	}
-
-    /**
-     * Initiate plugin widget.
-     *
-     * @return void
-     **/
-	function widget_init() {
-		register_widget('Advanced_Theme_Switcher_Widget');
-	}
-
-
-
-	function load_css() {
-		if ( !is_admin_bar_showing() )
-	        return;
-
-		if (is_admin())
-			return;
-
-		wp_register_style("advanced-theme-switcher-style", plugins_url('/css/advanced-theme-switcher.css', __FILE__));
-		wp_enqueue_style("advanced-theme-switcher-style", plugins_url('/css/advanced-theme-switcher.css', __FILE__));
-	}
-
-	function add_nodes_and_groups_to_toolbar( $wp_admin_bar ) {
-
-	    global $wp_admin_bar, $wpdb;
-
-		if ( !is_admin_bar_showing() )
-	        return;
-
-		if (is_admin())
-			return;
-
-	    /* Add the main siteadmin menu item */
-	    $wp_admin_bar->add_menu( 
-			array( 
-				'id' 		=> 'advanced-theme-switcher-menu', 
-				'title' 	=> __('Themes', 'advanced-theme-switcher'), 
-				'href' 		=> '#', 
-				'meta' 		=> array ( 'class' => 'advanced-theme-switcher-menu-main' ) 
-			) 
-		);
-	    
-		$wp_admin_bar->add_menu( 
-			array( 
-				'parent' 	=> 	'advanced-theme-switcher-menu', 
-				'id'		=>	'advanced-theme-switcher-menu-sub',
-				'title' 	=> 	'</a>'. $this->theme_switcher_markup('dropdown'). '<a href="#">', 
-				'href' 		=> 	'#', 
-				'meta' 		=> 	array ( 'class' => 'advanced-theme-switcher-menu-sub' ) 
-			) 
-		);
-	}
-
-
-    /**
-     * Set cookie with the theme name queried.
-     *
-     * @return void
-     **/
-	function set_cookie() {
-		$expire = time() + 30000000;
-		if ( !empty( $this->queried_theme ) )
-			setcookie( 'advanced-theme-switcher-' . COOKIEHASH, stripslashes( $this->queried_theme ), $expire, COOKIEPATH );			
-	}
-
-    /**
-     * Loads the language file from the "languages" directory.
-     *
-     * @return void
-     **/
-    function load_plugin_textdomain() {
+		var $plugin_version = "1.0.8";
 	
-        load_plugin_textdomain( 'advanced-theme-switcher', null, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
-    }
+	    /** @var string $queried_theme The name of the theme queried */
+		var $queried_theme = '';
 
-    /**
-     * Parse the queried theme var.
-     *
-     * @return void
-     **/
-	function parse_theme_preview_request() {
-		if ( !isset($_GET['theme-preview']))
-			return;
+	    /**
+	     * Constructor.
+	     *
+	     * @return void
+	     **/
+		function Advanced_Theme_Switcher() {
+
+	        add_action( 'setup_theme', 				array( &$this, 'parse_theme_preview_request' ) );
+	        add_action( 'init', 					array( &$this, 'set_cookie' ) );
+	        add_action( 'init', 					array( &$this, 'load_plugin_textdomain' ) );
+
+			add_filter( 'stylesheet', 				array (&$this, 'get_stylesheet' ) );
+			add_filter( 'template', 				array( &$this, 'get_template' ) );
 		
-		$this->queried_theme = esc_attr($_GET['theme-preview']);
-	}
-
-    /**
-     *  Filter stylesheet path
-     *
-     * @param <type> $stylesheet
-     * @return <type>
-     */
-	function get_stylesheet( $stylesheet ) {
-
-        /* Get theme name */
-		$theme = $this->get_current_theme_name();
-		if ( empty( $theme ) )
-			return $stylesheet;
-			
-        /* Get theme by name */
-		$theme = get_theme( $theme );
-        if ( empty( $theme ) )
-			return $stylesheet;
-			
-		/* Don't let people peek at unpublished themes. */
-		if ( isset( $theme['Status'] ) && $theme['Status'] != 'publish' )
-			return $stylesheet;
-
-		return $theme['Stylesheet'];
-	}
-
-    /**
-     * Filter template path
-     *
-     * @param <type> $template
-     * @return <type>
-     */
-	function get_template( $template ) {
-
-        /* Get theme name */
-		$theme = $this->get_current_theme_name();
-		if ( empty( $theme ) )
-			return $template;
-			
-        /* Get theme by name */
-		$theme = get_theme( $theme );
-		if ( empty( $theme ) )
-			return $template;
-
-		/* Don't let people peek at unpublished themes. */
-		if ( isset($theme['Status'] ) && $theme['Status'] != 'publish' )
-			return $template;
-
-		return $theme['Template'];
-	}
-
-    /**
-     * Get selected theme name.
-     *
-     * @return string|NULL Selected theme name.
-     **/
-	function get_current_theme_name() {
-
-        /* Get theme name from var */
-		if ( !empty( $this->queried_theme ) ) {
-			$queried_theme = $this->queried_theme;
-		} else {
-			$queried_theme = get_query_var('theme-preview');
+			add_action( 'admin_bar_menu', 			array( &$this, 'add_nodes_and_groups_to_toolbar'), 999 );
+			add_action( 'wp_print_styles', 			array( &$this, 'load_css'));
 		}
 
-        $queried_theme =  urldecode( $queried_theme );
+		function load_css() {
+			if ( !is_admin_bar_showing() )
+		        return;
 
-		/* Get theme name from cookie if no var is set */
-		if ( !empty( $queried_theme ) ) {
-			return $queried_theme;
-		} elseif ( !empty( $_COOKIE[ 'advanced-theme-switcher-' . COOKIEHASH ] ) ) {
-			return $_COOKIE[ 'advanced-theme-switcher-' . COOKIEHASH ];
-		} else {
-			return;
+			if (is_admin())
+				return;
+
+			wp_register_style("advanced-theme-switcher-style", plugins_url('/css/advanced-theme-switcher.css', __FILE__));
+			wp_enqueue_style("advanced-theme-switcher-style", plugins_url('/css/advanced-theme-switcher.css', __FILE__));
 		}
-	}
 
-    /**
-     * Widget output.
-     *
-     * @global <type> $wp_rewrite
-     * @param <type> $style
-     * @param <type> $instance
-     * @return <type>
-     */
-	function theme_switcher_markup( $style = 'text', $instance = array() ) {
+		function add_nodes_and_groups_to_toolbar( $wp_admin_bar ) {
 
-		if ( ! $theme_data = wp_cache_get('themes-data', 'advanced-theme-switcher') ) {
+		    global $wp_admin_bar, $wpdb;
 
-        	$themes = (array) get_themes();
-			if (!$themes) return;
-		
-        	if ( is_multisite() ) {
-            	$allowed_themes = (array) get_site_option( 'allowedthemes' );
-            	foreach( $themes as $name => $theme ) {
-                	if ( !isset( $allowed_themes[ esc_html( $theme['Stylesheet'] ) ] ) ) {
-                    	unset( $themes[$name] );
-                	}
-            	}
-        	}
+			if ( !is_admin_bar_showing() )
+		        return;
 
-			$theme_names = array_keys( (array) $themes );
+			if (is_admin())
+				return;
 
-			foreach ( $theme_names as $theme_name ) {
-
-				/* Skip unpublished themes. */
-				if ( empty( $theme_name ) || isset( $themes[$theme_name]['Status'] ) && $themes[$theme_name]['Status'] != 'publish' )
-					continue;
-
-				$theme_data[$theme_name] = add_query_arg( 'theme-preview', urlencode( $theme_name ), get_option('home') );
-			}
-			wp_cache_set('themes-data', $theme_data, 'advanced-theme-switcher');
+		    /* Add the main siteadmin menu item */
+		    $wp_admin_bar->add_menu( 
+				array( 
+					'id' 		=> 'advanced-theme-switcher-menu', 
+					'title' 	=> __('Themes', 'advanced-theme-switcher'), 
+					'href' 		=> '#', 
+					'meta' 		=> array ( 'class' => 'advanced-theme-switcher-menu-main' ) 
+				) 
+			);
+	    
+			$instance = array();
+			$instance['displaytype'] = "dropdown";
+			$instance['show-theme-parent'] = "yes";
+			$instance['show-theme-version'] = "yes";
+			$instance['show-theme-groups'] = "yes";
+	
+			$wp_admin_bar->add_menu ( 
+				array( 
+					'parent' 	=> 	'advanced-theme-switcher-menu', 
+					'id'		=>	'advanced-theme-switcher-menu-sub',
+					'title' 	=> 	'</a>'. $this->theme_switcher_markup($instance). '<a href="#">', 
+					'href' 		=> 	'#', 
+					'meta' 		=> 	array ( 'class' => 'advanced-theme-switcher-menu-sub' ) 
+				) 
+			);
 		}
+
+
+	    /**
+	     * Set cookie with the theme name queried.
+	     *
+	     * @return void
+	     **/
+		function set_cookie() {
+			$expire = time() + 30000000;
+			if ( !empty( $this->queried_theme ) )
+				setcookie( 'advanced-theme-switcher-' . COOKIEHASH, stripslashes( $this->queried_theme ), $expire, COOKIEPATH );			
+		}
+
+	    /**
+	     * Loads the language file from the "languages" directory.
+	     *
+	     * @return void
+	     **/
+	    function load_plugin_textdomain() {
+	
+	        load_plugin_textdomain( 'advanced-theme-switcher', null, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+	    }
+
+	    /**
+	     * Parse the queried theme var.
+	     *
+	     * @return void
+	     **/
+		function parse_theme_preview_request() {
+			if ( !isset($_GET['theme-preview']))
+				return;
 		
-		ksort( $theme_data );
+			$this->queried_theme = esc_attr($_GET['theme-preview']);
+		}
 
-		$ts = '<ul class="advanced-theme-switcher-container">'."\n";
+	    /**
+	     *  Filter stylesheet path
+	     *
+	     * @param <type> $stylesheet
+	     * @return <type>
+	     */
+		function get_stylesheet( $stylesheet ) {
 
-		if ( $style == 'dropdown' )
-			$ts .= '<li>'."\n\t" . '<select class="advanced-theme-switcher-themes" onchange="location.href=this.options[this.selectedIndex].value;">'."\n";
+	        /* Get theme name */
+			$theme = $this->get_preview_theme_name();
+			if ( empty( $theme ) )
+				return $stylesheet;
+			
+	        /* Get theme by name */
+			$theme = wp_get_theme( $theme );
+	        if ( empty( $theme ) )
+				return $stylesheet;
+			
+			/* Don't let people peek at unpublished themes. */
+			if ( isset( $theme['Status'] ) && $theme['Status'] != 'publish' )
+				return $stylesheet;
 
-        $default_theme = get_current_theme();
-		$current_theme = $this->get_current_theme_name();
+			return $theme['Stylesheet'];
+		}
 
-		foreach ( $theme_data as $theme_name => $url ) {
-			if ( !empty( $current_theme ) && $current_theme == $theme_name || empty( $current_theme ) && ( $theme_name == $default_theme ) ) {
-				if ($default_theme == $theme_name)
-					$pattern = ( 'dropdown' == $style ) ? '<option value="%1$s" selected="selected">%2$s *</option>' : '<li>%2$s *</li>';
-				else
-					$pattern = ( 'dropdown' == $style ) ? '<option value="%1$s" selected="selected">%2$s</option>' : '<li>%2$s</li>';
-			} else if ($default_theme == $theme_name) {
-				$pattern = ( 'dropdown' == $style ) ? '<option value="%1$s">%2$s *</option>' : '<li><a href="%1$s">%2$s</a> *</li>';
+	    /**
+	     * Filter template path
+	     *
+	     * @param <type> $template
+	     * @return <type>
+	     */
+		function get_template( $template ) {
+
+	        /* Get theme name */
+			$theme = $this->get_preview_theme_name();
+			if ( empty( $theme ) )
+				return $template;
+			
+	        /* Get theme by name */
+			$theme = wp_get_theme( $theme );
+			if ( empty( $theme ) )
+				return $template;
+
+			/* Don't let people peek at unpublished themes. */
+			if ( isset($theme['Status'] ) && $theme['Status'] != 'publish' )
+				return $template;
+
+			return $theme['Template'];
+		}
+
+	    /**
+	     * Get selected theme name.
+	     *
+	     * @return string|NULL Selected theme name.
+	     **/
+		function get_preview_theme_name() {
+
+	        /* Get theme name from var */
+			if ( !empty( $this->queried_theme ) ) {
+				$queried_theme = $this->queried_theme;
 			} else {
-				$pattern = ( 'dropdown' == $style ) ? '<option value="%1$s">%2$s</option>' : '<li><a href="%1$s">%2$s</a></li>';
+				$queried_theme = get_query_var('theme-preview');
 			}
-			$ts .= sprintf( $pattern, esc_attr( $url ), esc_html( $theme_name ) );
+
+	        $queried_theme =  urldecode( $queried_theme );
+
+			/* Get theme name from cookie if no var is set */
+			if ( !empty( $queried_theme ) ) {
+				return $queried_theme;
+			} elseif ( !empty( $_COOKIE[ 'advanced-theme-switcher-' . COOKIEHASH ] ) ) {
+				return $_COOKIE[ 'advanced-theme-switcher-' . COOKIEHASH ];
+			} else {
+				return;
+			}
 		}
 
-		if ( 'dropdown' == $style ) {
-			$ts .= '</select>' . "\n" . '</li>' . "\n";
+	    /**
+	     * Widget output.
+	     *
+	     * @global <type> $wp_rewrite
+	     * @param <type> $style
+	     * @param <type> $instance
+	     * @return <type>
+	     */
+		function theme_switcher_markup( $instance = array() ) {
+			global $wpdb;
+
+			if ( $themes_data = get_transient( 'wpmudev-advanced-theme-'. $this->plugin_version ) ) {
+		
+				$themes = wp_get_themes( array( 'allowed' => true, 'blog_id' => $wpdb->blogid ) );			
+				if (!$themes) return;
+		
+				$themes_data = array();
+				foreach($themes as $theme_slug => $theme) {
+				
+					$theme_info = array();
+					$theme_info['title'] 		= $theme->display('Name');
+					$theme_info['version'] 		= $theme->display('Version');
+					$theme_info['template'] 	= $theme->get_template();
+					$theme_info['stylesheet'] 	= $theme->get_stylesheet();
+					$theme_info['url'] 			= add_query_arg( 'theme-preview', urlencode( $theme_slug ), get_option('home') );
+
+					if (($instance['show-theme-parent'] == "no") && ($theme_info['template'] !== $theme_info['stylesheet']))
+						continue;
+					$themes_data[$theme_slug] = $theme_info;				
+
+				}
+			
+				set_transient( 'wpmudev-advanced-theme-'. $this->plugin_version, $themes_data );
+			}
+		
+			if ((!empty($themes_data)) && (is_array($themes_data))) {
+
+				$current_active_theme_slug = wp_get_theme()->get_stylesheet();			
+				$preview_theme_name = $this->get_preview_theme_name();
+
+				if ((isset($instance['show-theme-groups'])) && ($instance['show-theme-groups'] == "yes")) {
+					$themes_data_parents = array();
+					
+					foreach ( $themes_data as $theme_slug => $theme_info ) {
+						if ($theme_info['template'] === $theme_info['stylesheet']) {
+							$themes_data_parents[$theme_slug] = $theme_info;
+							unset($themes_data[$theme_slug]);
+						}
+					}
+					if (count($themes_data_parents)) {
+						
+						foreach($themes_data_parents as $theme_slug_parent => $theme_info_parent) {
+							$theme_info_children = array();
+
+							foreach ( $themes_data as $theme_slug => $theme_info ) {
+								if ($theme_info['template'] === $theme_info_parent['stylesheet']) {
+									$theme_info_children[$theme_slug] = $theme_info;
+									unset($themes_data[$theme_slug]);
+								}
+							}
+							
+							if (count($theme_info_children)) {
+								$themes_data_parents[$theme_slug_parent]['children'] = array();
+								$themes_data_parents[$theme_slug_parent]['children'] = $theme_info_children;
+							}
+						}
+						$themes_data = $themes_data_parents;
+					}
+				}				
+				$ts = '<ul class="advanced-theme-switcher-container">'."\n";
+
+				if ( $instance['displaytype'] == 'dropdown' )
+					$ts .= '<li>'."\n\t" . '<select class="advanced-theme-switcher-themes"
+					 	onchange="location.href=this.options[this.selectedIndex].value;">'."\n";
+
+			
+				foreach ( $themes_data as $theme_slug => $theme_info ) {
+
+					$theme_title = esc_html( $theme_info['title']);
+					if ((isset($instance['show-theme-version'])) && ($instance['show-theme-version'] == "yes")) {
+						$theme_title .= " (". esc_html( $theme_info['version']).")";
+					}
+
+					$pattern = ( 'dropdown' == $instance['displaytype'] ) ? '<option value="%1$s">%2$s</option>' : '<li><a href="%1$s">%2$s</a>';
+					$ts .= sprintf( $pattern, esc_attr( $theme_info['url'] ), $theme_title );
+					
+					if ( (isset($theme_info['children'])) && (count($theme_info['children'])) ) {
+						$ts .= ( 'dropdown' == $instance['displaytype'] ) ? '' : '<ul class="theme-child-container">';
+						
+						foreach($theme_info['children'] as $theme_slug_child => $theme_info_child) {
+
+							$theme_title_child = esc_html( $theme_info_child['title']);
+							if ((isset($instance['show-theme-version'])) && ($instance['show-theme-version'] == "yes")) {
+								$theme_title_child .= " (". esc_html( $theme_info_child['version']).")";
+							}
+
+							$pattern = ( 'dropdown' == $instance['displaytype'] ) ? '<option class="theme-child" value="%1$s">%2$s</option>' : '<li class="theme-child"><a href="%1$s">%2$s</a></li>';
+							$ts .= sprintf( $pattern, esc_attr( $theme_info_child['url'] ), $theme_title_child );
+						}
+						
+						$ts .= ( 'dropdown' == $instance['displaytype'] ) ? '' : '</ul>';
+					}
+					
+					$ts .= ( 'dropdown' == $instance['displaytype'] ) ? '' : '</li>';
+					
+				}
+
+				if ( 'dropdown' == $instance['displaytype'] ) {
+					$ts .= '</select>' . "\n" . '</li>' . "\n";
+				}
+				$ts .= '</ul>';
+
+				return $ts;
+			}
 		}
-		$ts .= '</ul>';
-		//$ts .= "<p>* = ". __('Current theme', 'advanced-theme-switcher') ."</p>";
-		return $ts;
 	}
+	$advanced_theme_switcher = new Advanced_Theme_Switcher();
 }
-endif;
 
 /**
  * Widget for Advanced Theme Switcher
  **/
-if ( !class_exists('Advanced_Theme_Switcher_Widget') ):
-class Advanced_Theme_Switcher_Widget extends WP_Widget {
+if ( !class_exists('Advanced_Theme_Switcher_Widget') ) {
+	class Advanced_Theme_Switcher_Widget extends WP_Widget {
 
-	function Advanced_Theme_Switcher_Widget() {
-		return $this->WP_Widget( 'advanced-theme-switcher-widget', __( 'Advanced Theme Switcher Widget', 'advanced-theme-switcher' ), array( 'description' => __( 'A widget with options for switching themes.', 'advanced-theme-switcher' ) ) );
+		function Advanced_Theme_Switcher_Widget() {
+			return $this->WP_Widget( 'advanced-theme-switcher-widget', __( 'Advanced Theme Switcher Widget', 'advanced-theme-switcher' ), array( 'description' => __( 'A widget with options for switching themes.', 'advanced-theme-switcher' ) ) );
+		}
+
+		function widget( $args, $instance ) {
+			global $advanced_theme_switcher;
+			echo $args['before_widget'];
+			echo $args['before_title'] . __( 'Theme Switcher', 'advanced-theme-switcher' ) . $args['after_title'];
+			echo $advanced_theme_switcher->theme_switcher_markup( $instance );
+			echo $args['after_widget'];
+		}
+
+		function update( $new_instance, $instance ) {
+		
+			if (isset($new_instance['displaytype']))
+				$instance['displaytype'] = strip_tags($new_instance['displaytype']);
+			else
+				$instance['displaytype'] = 'list';
+
+			if (isset($new_instance['show-theme-groups']))
+				$instance['show-theme-groups'] = strip_tags($new_instance['show-theme-groups']);
+			else
+				$instance['show-theme-parent'] = 'no';
+
+			if (isset($new_instance['show-theme-parent']))
+				$instance['show-theme-parent'] = strip_tags($new_instance['show-theme-parent']);
+			else
+				$instance['show-theme-parent'] = 'yes';
+
+			if (isset($new_instance['show-theme-version']))
+				$instance['show-theme-version'] = strip_tags($new_instance['show-theme-version']);
+			else
+				$instance['show-theme-version'] = 'yes';
+		
+			if ($instance['show-theme-parent'] == "no")
+				$instance['show-theme-groups'] = "no";
+				
+			return $instance;
+		}
+
+		function form( $instance ) {
+			$type = ( isset( $instance['displaytype'] ) ) ? $instance['displaytype'] : 'list'; 
+			$show_theme_groups = ( isset( $instance['show-theme-groups'] ) ) ? $instance['show-theme-groups'] : 'yes';
+			$show_theme_parent = ( isset( $instance['show-theme-parent'] ) ) ? $instance['show-theme-parent'] : 'yes';
+			$show_theme_version = ( isset( $instance['show-theme-version'] ) ) ? $instance['show-theme-version'] : 'yes';
+			?>
+		
+			<p><label for="<?php echo $this->get_field_id('displaytype'); ?>"><?php 
+				_e( 'Display themes as:', 'advanced-theme-switcher' ); ?></label><br />
+				<span><input type="radio" name="<?php echo $this->get_field_name('displaytype'); ?>" value="list" <?php
+					if ( 'list' == $type ) { echo ' checked="checked"'; }
+				?> /> <?php _e( 'List', 'advanced-theme-switcher' ); ?></span>
+				<span><input type="radio" name="<?php echo $this->get_field_name('displaytype'); ?>" value="dropdown" <?php
+					if ( 'dropdown' == $type ) { echo ' checked="checked"'; }
+				?>/> <?php _e( 'Dropdown', 'advanced-theme-switcher' ); ?></span>
+			</p>
+			
+			<p><label for="<?php echo $this->get_field_id('show-theme-parent'); ?>"><?php 
+				_e( 'Show Theme Parent:', 'advanced-theme-switcher' ); ?></label><br />
+				<span><input type="radio" name="<?php echo $this->get_field_name('show-theme-parent'); ?>" value="yes" <?php
+					if ( 'yes' == $show_theme_parent ) { echo ' checked="checked"'; }
+				?> /> <?php _e( 'Yes', 'advanced-theme-switcher' ); ?></span>
+				<span><input type="radio" name="<?php echo $this->get_field_name('show-theme-parent'); ?>" value="no" <?php
+					if ( 'no' == $show_theme_parent ) { echo ' checked="checked"'; }
+				?>/> <?php _e( 'No', 'advanced-theme-switcher' ); ?></span>
+			</p>
+
+			<p><label for="<?php echo $this->get_field_id('show-theme-groups'); ?>"><?php 
+				_e( 'Show Themes Grouped By Parent: ', 'advanced-theme-switcher' ); ?></label><br />
+				<span><input type="radio" name="<?php echo $this->get_field_name('show-theme-groups'); ?>" value="yes" <?php
+					if ( 'yes' == $show_theme_groups ) { echo ' checked="checked"'; }
+				?> /> <?php _e( 'Yes', 'advanced-theme-switcher' ); ?></span>
+				<span><input type="radio" name="<?php echo $this->get_field_name('show-theme-groups'); ?>" value="no" <?php
+					if ( 'no' == $show_theme_groups ) { echo ' checked="checked"'; }
+				?>/> <?php _e( 'No', 'advanced-theme-switcher' ); ?></span>
+			</p>
+
+			<p><label for="<?php echo $this->get_field_id('show-theme-version'); ?>"><?php 
+				_e( 'Show Theme Version as part of Title:', 'advanced-theme-switcher' ); ?></label><br />
+				<span><input type="radio" name="<?php echo $this->get_field_name('show-theme-version'); ?>" value="yes" <?php
+					if ( 'yes' == $show_theme_version ) { echo ' checked="checked"'; }
+				?> /> <?php _e( 'Yes', 'advanced-theme-switcher' ); ?></span>
+				<span><input type="radio" name="<?php echo $this->get_field_name('show-theme-version'); ?>" value="no" <?php
+					if ( 'no' == $show_theme_version ) { echo ' checked="checked"'; }
+				?>/> <?php _e( 'No', 'advanced-theme-switcher' ); ?></span>
+			</p>
+
+			<?php
+		}
 	}
 
-	function widget( $args, $instance ) {
-		global $advanced_theme_switcher;
-		echo $args['before_widget'];
-		echo $args['before_title'] . __( 'Theme Switcher', 'advanced-theme-switcher' ) . $args['after_title'];
-		echo $advanced_theme_switcher->theme_switcher_markup( $instance['displaytype'], $instance );
-		echo $args['after_widget'];
+	add_action( 'widgets_init', 'widget_init_advanced_theme_switcher_widget' );
+	function widget_init_advanced_theme_switcher_widget() {
+		register_widget('Advanced_Theme_Switcher_Widget');
 	}
-
-	function update( $new_instance ) {
-		return $new_instance;
-	}
-
-	function form( $instance ) {
-		$type = ( isset( $instance['displaytype'] ) ) ? $instance['displaytype'] : NULL; ?>
-
-		<p><label for="<?php echo $this->get_field_id('displaytype'); ?>"><?php _e( 'Display themes as:', 'advanced-theme-switcher' ); ?></label></p>
-		<p>
-			<span><input type="radio" name="<?php echo $this->get_field_name('displaytype'); ?>" value="list" <?php
-				if ( 'list' == $type ) {
-					echo ' checked="checked"';
-				}
-			?> /> <?php _e( 'List', 'advanced-theme-switcher' ); ?></span>
-			<span><input type="radio" name="<?php echo $this->get_field_name('displaytype'); ?>" value="dropdown" <?php
-				if ( 'dropdown' == $type ) {
-					echo ' checked="checked"';
-				}
-			?>/> <?php _e( 'Dropdown', 'advanced-theme-switcher' ); ?></span>
-		</p>
-		<?php
-	}
-}
-endif;
-
-/* Initiate plugin */
-if ( class_exists('Advanced_Theme_Switcher') )
-    $advanced_theme_switcher = new Advanced_Theme_Switcher();
-
-/* Update Notifications Notice */
-if ( !function_exists('wdp_un_check') ) {
-    function wdp_un_check() {
-        if ( !class_exists('WPMUDEV_Update_Notifications') && current_user_can('edit_users') )
-            echo '<div class="error fade"><p>' . __('Please install the latest version of <a href="http://premium.wpmudev.org/project/update-notifications/" title="Download Now &raquo;">our free Update Notifications plugin</a> which helps you stay up-to-date with the most stable, secure versions of WPMU DEV themes and plugins. <a href="http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-information/">More information &raquo;</a>', 'wpmudev') . '</a></p></div>';
-    }
-    add_action( 'network_admin_notices', 'wdp_un_check', 5 );
-    add_action( 'admin_notices', 'wdp_un_check', 5 );
 }

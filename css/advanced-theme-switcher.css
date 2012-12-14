@@ -15,3 +15,7 @@
 	text-shadow: none;
 	line-height: 12px;	
 }
+
+ul.advanced-theme-switcher-container select.advanced-theme-switcher-themes option.theme-child {
+	text-indent: 10px;
+}

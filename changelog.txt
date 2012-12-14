@@ -1,7 +1,13 @@
 === Advanced Theme Switcher ===
-Authors: Ivan Shaovchev, Austin Matzko, Andrey Shipilov, Paul Menard (Incsub)
+Authors: Paul Menard (Incsub)
 
 == Changelog ==
+
+= 1.0.8 =
+* Updated call to get_themes and get_active_theme to non-deprecated functions
+* Added some options to the widget: Hide Parent themes to show only child themes, Show theme version in output and group themes by parent child. 
+* Cleanup some of the processing logic and caching.
+* Verify worked on WordPress 3.5
 
 = 1.0.7 =
 * Fixed problem with rewrite rules. Actually removed rewrite logic. Added theme switcher to WordPress admin bar for logged in users;
