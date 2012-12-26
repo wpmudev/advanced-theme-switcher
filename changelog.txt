@@ -3,6 +3,9 @@ Authors: Paul Menard (Incsub)
 
 == Changelog ==
 
+= 1.0.8.1 =
+* Fixed issue when hiding parent themes children themes were also being hidden. 
+
 = 1.0.8 =
 * Updated call to get_themes and get_active_theme to non-deprecated functions
 * Added some options to the widget: Hide Parent themes to show only child themes, Show theme version in output and group themes by parent child. 

@@ -1,10 +1,9 @@
 <?php
-
 /*
 Plugin Name: Advanced Theme Switcher
 Plugin URI: http://premium.wpmudev.org/project/advanced-theme-switcher
 Description: Advanced Theme Switcher allows BuddyPress and Multisite users the chance to switch between different themes, or you the opportunity to profile different theme designs on a BuddyPress or Multisite.
-Version: 1.0.8
+Version: 1.0.8.1
 Author: Paul Menard (Incsub)
 Author URI: http://premium.wpmudev.org/
 WDP ID: 112
@@ -39,7 +38,7 @@ include_once( dirname(__FILE__) . '/lib/dash-notices/wpmudev-dash-notification.p
 if ( !class_exists('Advanced_Theme_Switcher') ) {
 	class Advanced_Theme_Switcher {
 
-		var $plugin_version = "1.0.8";
+		var $plugin_version = "1.0.8.1";
 	
 	    /** @var string $queried_theme The name of the theme queried */
 		var $queried_theme = '';
@@ -55,11 +54,15 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 	        add_action( 'init', 					array( &$this, 'set_cookie' ) );
 	        add_action( 'init', 					array( &$this, 'load_plugin_textdomain' ) );
 
+
 			add_filter( 'stylesheet', 				array (&$this, 'get_stylesheet' ) );
 			add_filter( 'template', 				array( &$this, 'get_template' ) );
 		
 			add_action( 'admin_bar_menu', 			array( &$this, 'add_nodes_and_groups_to_toolbar'), 999 );
 			add_action( 'wp_print_styles', 			array( &$this, 'load_css'));
+			
+			register_activation_hook( __FILE__, array( &$this, 'plugin_activation_proc' ) );
+	        
 		}
 
 		function load_css() {
@@ -220,6 +223,10 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 			}
 		}
 
+		function plugin_activation_proc() {
+			delete_transient( 'wpmudev-advanced-theme-'. $this->plugin_version );			
+		}
+
 	    /**
 	     * Widget output.
 	     *
@@ -231,7 +238,10 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 		function theme_switcher_markup( $instance = array() ) {
 			global $wpdb;
 
-			if ( $themes_data = get_transient( 'wpmudev-advanced-theme-'. $this->plugin_version ) ) {
+//			echo "instance<pre>"; print_r($instance); echo "</pre>";
+						
+//			$themes_data = get_transient( 'wpmudev-advanced-theme-'. $this->plugin_version );
+//			if ((!$themes_data) || (!is_array($themes_data))) {
 		
 				$themes = wp_get_themes( array( 'allowed' => true, 'blog_id' => $wpdb->blogid ) );			
 				if (!$themes) return;
@@ -246,56 +256,91 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 					$theme_info['stylesheet'] 	= $theme->get_stylesheet();
 					$theme_info['url'] 			= add_query_arg( 'theme-preview', urlencode( $theme_slug ), get_option('home') );
 
-					if (($instance['show-theme-parent'] == "no") && ($theme_info['template'] !== $theme_info['stylesheet']))
-						continue;
-					$themes_data[$theme_slug] = $theme_info;				
-
+					//if (($instance['show-theme-parent'] == "no") && ($theme_info['template'] !== $theme_info['stylesheet']))
+					//	continue;
+					
+					$themes_data[$theme_slug] = $theme_info;
 				}
-			
-				set_transient( 'wpmudev-advanced-theme-'. $this->plugin_version, $themes_data );
-			}
+//				set_transient( 'wpmudev-advanced-theme-'. $this->plugin_version, $themes_data, 60 );
+//			}
 		
+//			echo "themes_data<pre>"; print_r($themes_data); echo "</pre>";
 			if ((!empty($themes_data)) && (is_array($themes_data))) {
 
 				$current_active_theme_slug = wp_get_theme()->get_stylesheet();			
 				$preview_theme_name = $this->get_preview_theme_name();
 
-				if ((isset($instance['show-theme-groups'])) && ($instance['show-theme-groups'] == "yes")) {
-					$themes_data_parents = array();
+				$themes_data_parents = array();
+				
+				// Step 1: Create a nested array ot Parent > Child groups
+				foreach ( $themes_data as $theme_slug => $theme_info ) {
+					if ($theme_info['template'] === $theme_info['stylesheet']) {
+						$themes_data_parents[$theme_slug] = $theme_info;
+						unset($themes_data[$theme_slug]);
+					}
+				}
+
+				// Step 2: Then loop through the theme parents then the remaining themes_data elements looking
+				// for the parent's children. 
+				if (count($themes_data_parents)) {
 					
+					foreach($themes_data_parents as $theme_slug_parent => $theme_info_parent) {
+						$theme_info_children = array();
+
+						foreach ( $themes_data as $theme_slug => $theme_info ) {
+							if ($theme_info['template'] === $theme_info_parent['stylesheet']) {
+								$theme_info_children[$theme_slug] = $theme_info;
+								unset($themes_data[$theme_slug]);
+							}
+						}
+						
+						if (count($theme_info_children)) {
+							$themes_data_parents[$theme_slug_parent]['children'] = array();
+							$themes_data_parents[$theme_slug_parent]['children'] = $theme_info_children;
+						}
+					}
+					$themes_data = array_merge($themes_data, $themes_data_parents);
+				}
+				
+				// Step 3: If the widget does not want to show parent then only for those who have children remove. 
+				// Move the parent's children back to top level.
+				if ($instance['show-theme-parent'] == "no") {
+					$child_themes = array();
 					foreach ( $themes_data as $theme_slug => $theme_info ) {
-						if ($theme_info['template'] === $theme_info['stylesheet']) {
-							$themes_data_parents[$theme_slug] = $theme_info;
+						if (isset($theme_info['children'])) {
+							$child_themes = array_merge($child_themes, $theme_info['children']);
 							unset($themes_data[$theme_slug]);
 						}
 					}
-					if (count($themes_data_parents)) {
-						
-						foreach($themes_data_parents as $theme_slug_parent => $theme_info_parent) {
-							$theme_info_children = array();
-
-							foreach ( $themes_data as $theme_slug => $theme_info ) {
-								if ($theme_info['template'] === $theme_info_parent['stylesheet']) {
-									$theme_info_children[$theme_slug] = $theme_info;
-									unset($themes_data[$theme_slug]);
-								}
-							}
-							
-							if (count($theme_info_children)) {
-								$themes_data_parents[$theme_slug_parent]['children'] = array();
-								$themes_data_parents[$theme_slug_parent]['children'] = $theme_info_children;
-							}
-						}
-						$themes_data = $themes_data_parents;
+					if (count($child_themes)) {
+						$themes_data = array_merge($themes_data, $child_themes);
 					}
-				}				
+				}
+				
+				// Step 4: If NOT grouping by Parent. Move all remaining children to top level
+				if ($instance['show-theme-groups'] == "no") {
+					$child_themes = array();
+					foreach ( $themes_data as $theme_slug => $theme_info ) {
+						if (isset($theme_info['children'])) {
+							$child_themes = array_merge($child_themes, $theme_info['children']);
+							unset($themes_data[$theme_slug]['children']);
+						}
+					}
+					if (count($child_themes)) {
+						$themes_data = array_merge($themes_data, $child_themes);
+					}
+				}
+				
+				//echo "themes_data<pre>"; print_r($themes_data); echo "</pre>";
+								
 				$ts = '<ul class="advanced-theme-switcher-container">'."\n";
 
-				if ( $instance['displaytype'] == 'dropdown' )
+				if ( $instance['displaytype'] == 'dropdown' ) {
 					$ts .= '<li>'."\n\t" . '<select class="advanced-theme-switcher-themes"
 					 	onchange="location.href=this.options[this.selectedIndex].value;">'."\n";
-
+				}
 			
+				$preview_theme_name = $this->get_preview_theme_name();
 				foreach ( $themes_data as $theme_slug => $theme_info ) {
 
 					$theme_title = esc_html( $theme_info['title']);
@@ -303,7 +348,12 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 						$theme_title .= " (". esc_html( $theme_info['version']).")";
 					}
 
-					$pattern = ( 'dropdown' == $instance['displaytype'] ) ? '<option value="%1$s">%2$s</option>' : '<li><a href="%1$s">%2$s</a>';
+					
+					if ($theme_slug == $preview_theme_name) {
+						$pattern = ( 'dropdown' == $instance['displaytype'] ) ? '<option selected="selected" value="%1$s">%2$s</option>' : '<li><a href="%1$s">%2$s</a>';						
+					} else {
+						$pattern = ( 'dropdown' == $instance['displaytype'] ) ? '<option value="%1$s">%2$s</option>' : '<li><a href="%1$s">%2$s</a>';
+					}
 					$ts .= sprintf( $pattern, esc_attr( $theme_info['url'] ), $theme_title );
 					
 					if ( (isset($theme_info['children'])) && (count($theme_info['children'])) ) {
@@ -316,7 +366,11 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 								$theme_title_child .= " (". esc_html( $theme_info_child['version']).")";
 							}
 
-							$pattern = ( 'dropdown' == $instance['displaytype'] ) ? '<option class="theme-child" value="%1$s">%2$s</option>' : '<li class="theme-child"><a href="%1$s">%2$s</a></li>';
+							if ($theme_slug == $preview_theme_name) {
+								$pattern = ( 'dropdown' == $instance['displaytype'] ) ? '<option selected="selected" class="theme-child" value="%1$s">%2$s</option>' : '<li class="theme-child"><a href="%1$s">%2$s</a></li>';
+							} else {
+								$pattern = ( 'dropdown' == $instance['displaytype'] ) ? '<option class="theme-child" value="%1$s">%2$s</option>' : '<li class="theme-child"><a href="%1$s">%2$s</a></li>';
+							}
 							$ts .= sprintf( $pattern, esc_attr( $theme_info_child['url'] ), $theme_title_child );
 						}
 						
@@ -358,7 +412,10 @@ if ( !class_exists('Advanced_Theme_Switcher_Widget') ) {
 		}
 
 		function update( $new_instance, $instance ) {
-		
+			global $advanced_theme_switcher;
+			
+			delete_transient( 'wpmudev-advanced-theme-'. $advanced_theme_switcher->plugin_version );
+			
 			if (isset($new_instance['displaytype']))
 				$instance['displaytype'] = strip_tags($new_instance['displaytype']);
 			else
@@ -441,3 +498,4 @@ if ( !class_exists('Advanced_Theme_Switcher_Widget') ) {
 		register_widget('Advanced_Theme_Switcher_Widget');
 	}
 }
+// End of plugin code
