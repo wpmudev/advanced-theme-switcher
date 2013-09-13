@@ -1,57 +1,103 @@
-# Translation of the WordPress plugin Advanced Theme Switcher 1.0.7 by Ivan Shaovchev, Austin Matzko, Andrey Shipilov, Paul Menard (Incsub).
-# Copyright (C) 2012 Ivan Shaovchev, Austin Matzko, Andrey Shipilov, Paul Menard (Incsub)
+# Translation of the WordPress plugin Advanced Theme Switcher 1.0.9 by Paul Menard (Incsub).
+# Copyright (C) 2013 Paul Menard (Incsub)
 # This file is distributed under the same license as the Advanced Theme Switcher package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2012.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2013.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Advanced Theme Switcher 1.0.7\n"
+"Project-Id-Version: Advanced Theme Switcher 1.0.9\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/advanced-theme-switcher\n"
-"POT-Creation-Date: 2012-04-19 09:00-0500\n"
-"PO-Revision-Date: 2012-MO-DA HO:MI+ZONE\n"
+"POT-Creation-Date: 2013-09-13 07:15-0500\n"
+"PO-Revision-Date: 2013-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: advanced-theme-switcher.php:96
+#: advanced-theme-switcher.php:126
 msgid "Themes"
 msgstr ""
 
-#: advanced-theme-switcher.php:301
-msgid "Advanced Theme Switcher Widget"
+#: advanced-theme-switcher.php:615
+msgid "Select Theme"
 msgstr ""
 
-#: advanced-theme-switcher.php:301
+#: advanced-theme-switcher.php:747
 msgid "A widget with options for switching themes."
 msgstr ""
 
-#: advanced-theme-switcher.php:307
+#: advanced-theme-switcher.php:758
+msgid "Advanced Theme Switcher Widget"
+msgstr ""
+
+#: advanced-theme-switcher.php:787
 msgid "Theme Switcher"
 msgstr ""
 
-#: advanced-theme-switcher.php:319
+#: advanced-theme-switcher.php:838
 msgid "Display themes as:"
 msgstr ""
 
-#: advanced-theme-switcher.php:325
+#: advanced-theme-switcher.php:841
 msgid "List"
 msgstr ""
 
-#: advanced-theme-switcher.php:330
+#: advanced-theme-switcher.php:844
 msgid "Dropdown"
 msgstr ""
 
-#: advanced-theme-switcher.php:345
+#: advanced-theme-switcher.php:848
+msgid "Show Theme Parent:"
+msgstr ""
+
+#: advanced-theme-switcher.php:851
+msgid "Parent &amp; Child"
+msgstr ""
+
+#: advanced-theme-switcher.php:854
+msgid "Child only"
+msgstr ""
+
+#: advanced-theme-switcher.php:858
+msgid "Show Themes Grouped By Parent/Child Hierarchy: "
+msgstr ""
+
+#: advanced-theme-switcher.php:861 advanced-theme-switcher.php:871
+#: advanced-theme-switcher.php:881
+msgid "Yes"
+msgstr ""
+
+#: advanced-theme-switcher.php:864 advanced-theme-switcher.php:874
+#: advanced-theme-switcher.php:884
+msgid "No"
+msgstr ""
+
+#: advanced-theme-switcher.php:868
+msgid "Show Theme Parent Directory:"
+msgstr ""
+
+#: advanced-theme-switcher.php:878
+msgid "Show Theme Version as part of Title:"
+msgstr ""
+
+#: lib/dash-notices/wpmudev-dash-notification.php:57
+#, php-format
 msgid ""
-"Please install the latest version of <a href=\"http://premium.wpmudev.org/"
-"project/update-notifications/\" title=\"Download Now &raquo;\">our free "
-"Update Notifications plugin</a> which helps you stay up-to-date with the "
-"most stable, secure versions of WPMU DEV themes and plugins. <a href="
-"\"http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-"
-"information/\">More information &raquo;</a>"
+"Easily get updates, support, and one-click WPMU DEV plugin/theme "
+"installations right from in your dashboard - <strong><a href=\"%s\" title="
+"\"Install Now &raquo;\">install the free WPMU DEV Dashboard plugin</a></"
+"strong>. &nbsp;&nbsp;&nbsp;<small><a href=\"http://premium.wpmudev.org/wpmu-"
+"dev/update-notifications-plugin-information/\">(find out more)</a></small>"
+msgstr ""
+
+#: lib/dash-notices/wpmudev-dash-notification.php:61
+#, php-format
+msgid ""
+"Updates, Support, Premium Plugins, Community - <strong><a href=\"%s\" title="
+"\"Activate Now &raquo;\">activate the WPMU DEV Dashboard plugin now</a></"
+"strong>."
 msgstr ""
 
 #. Plugin Name of the plugin/theme
@@ -70,7 +116,7 @@ msgid ""
 msgstr ""
 
 #. Author of the plugin/theme
-msgid "Ivan Shaovchev, Austin Matzko, Andrey Shipilov, Paul Menard (Incsub)"
+msgid "Paul Menard (Incsub)"
 msgstr ""
 
 #. Author URI of the plugin/theme

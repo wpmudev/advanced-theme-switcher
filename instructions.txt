@@ -1,0 +1,59 @@
+Advanced Theme Switcher
+-----------------------
+
+shortcode options
+-----------------
+The Advanced Theme Switcher 1.0.8.2 now support use of a shortcode. So you can place the themes listing within a Post instead of being limited to the display within a widget. And as you are probably aware widgets do not transfer between themes. So when the theme is switched you loose the widget. 
+
+The basic shortcode using all default options is simply
+
+[adv_theme_switcher]
+
+There are many options you can also use to customize the output of the themes list. Shown below in detail
+
+display_type - Possible values: dropdown, list, menu (only for WP toolbar), no/false
+Example: [adv_theme_switcher display_type='list' display_type_sub='list']
+As the values imply you can show the themes in dropdown/select, unordered list or menu format. The menu format is ONLY allowed for the WordPress Toolbar menu.
+
+display_type_sub - Used only in the 'ADV_THEME_SWITCHER_TOOLBAR' settings (see below). Possible values: dropdown (default), menu. 
+Used to control the display of second level options in the WP toolbar menu. You can display second level items as dropdown or menu items. 
+
+show_theme_parent - Possible values: yes (default) or no 
+Example: [adv_theme_switcher show_theme_parent='yes']
+show_theme_versionThis controls display of the parent/base theme when it also has children. If set to 'yes' the parent and child will be displayed. If set to 'no' only child themes will be displayed. Also included in the display will be base themes which do not have child themes associated. 
+
+show_theme_groups - Possible values: yes (default) or no
+Example: [adv_theme_switcher show_theme_groups='no']
+This option is only used if the 'show_theme_parent' option is set as 'yes'. If set to 'yes' this option will display the parent/child themes represented in a hierarchy output. Meaning the child theme will be shown indented beneath the parent theme. If set to 'no' the parent and child themes will be displayed in a normal output. 
+
+show_theme_parent_folder - Possible values: yes (default) or no
+Example: [adv_theme_switcher show_theme_parent_folder='yes']
+This option depends on how your themes are organized within the /wp-content/themes/ directory. WordPress allows you to nest your themes into sub-directories. So for example you may group your themes into sub-directories like /wp-content/themes/Free, /wp-content/themes/Premium. WordPress only supports one level of sub-directory. If you have your themes organized within sub-directories and this option is set to 'yes' the plugin will display the output with an outer level of the hierarchy. The sub-directory name will be used as the label for this outer level. 
+
+show_theme_version - Possible values: yes (default) or no
+Example: [adv_theme_switcher show_theme_version='no']
+When set to 'yes' will include the theme version as part of the theme name. If set to 'no' the version will not be shown.
+
+show_theme_parent_filter - theme directory text
+Example: [adv_theme_switcher show_theme_parent_filter='twentythirteen']
+Using this options you can limit the output of the themes to a partial listing. For example if your themes are organized into sub-directories (see notes on 'show_theme_parent_folder' option) and one of the sub-directories is named 'Free' then setting this option to 'Free' will show only themes within that sub-directory. Also, you can set this option to be a specific parent theme. As a second example assume you have a number of child themes based on the WordPress TwentyThirteen theme. You can set this option to 'twentythirteen' and the parent and any child themes only will be displayed.
+
+global defined
+--------------
+The Advanced Theme Switcher 1.0.8.2 now support use defines in your wp-config.php. These defines (two of them) allow you to control the default options as well as options to control the WP Toolbar menu. Using the shortcode options above you can define the option=value pairs to control how the Advanced Theme Switcher output the information 
+
+Default Options: 'ADV_THEME_SWITCHER_DEFAULTS'
+Can be used to set the default options. This means for widgets and shortcode this will be the default option set used. You can then override these default options via the local shortcode or widget options. 
+
+Example: 
+define("ADV_THEME_SWITCHER_DEFAULTS", 'display_type=dropdown&show_theme_parent=yes&show_theme_version=yes&show_theme_groups=yes&show_theme_parent_folder=yes');
+
+WP Toolbar options: 'ADV_THEME_SWITCHER_TOOLBAR'
+This define is used to control the output of the WordPress toolbar menu. For example you can have the menu not display. You can display the output in a dropdown or a combination of menu and dropdowns. 
+
+Example 1: Hide the WP Toolbar menu
+define('ADV_THEME_SWITCHER_TOOLBAR', 'display_type=false');
+
+Example 2: Shoe the sub-menu items in dropdown instead of sub-menu items. 
+define('ADV_THEME_SWITCHER_TOOLBAR', 'display_type=menu&display_type_sub=dropdown');
+

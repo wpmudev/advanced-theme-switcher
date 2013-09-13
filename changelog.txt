@@ -3,6 +3,12 @@ Authors: Paul Menard (Incsub)
 
 == Changelog ==
 
+= 1.0.9 = 
+* Fixed reported issue of sorting themes when themes are set into sub-directories within the /wp-content/themes/ directory
+* Added better control for WordPress Toolbar menu Themes output via wp-config define variable 'ADV_THEME_SWITCHER_TOOLBAR'. See instructions.txt file in plugin folder for details. 
+* Added shortcode support [adv_theme_switcher] so you can display themes listing on pages instead of relying on widgets which are theme specific. See instructions.txt file in plugin folder for details and options. 
+* Added a second wp-config define option ADV_THEME_SWITCHER_DEFAULTS to control default values site-wide. 
+
 = 1.0.8.1 =
 * Fixed issue when hiding parent themes children themes were also being hidden. 
 
