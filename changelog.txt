@@ -3,6 +3,9 @@ Authors: Paul Menard (Incsub)
 
 == Changelog ==
 
+= 1.0.9.1 = 
+* Fixed reported issue where selected theme to preview on site front-end was effecting actual theme selection/change within Dashboard Appearance > Themes. 
+
 = 1.0.9 = 
 * Fixed reported issue of sorting themes when themes are set into sub-directories within the /wp-content/themes/ directory
 * Added better control for WordPress Toolbar menu Themes output via wp-config define variable 'ADV_THEME_SWITCHER_TOOLBAR'. See instructions.txt file in plugin folder for details. 
