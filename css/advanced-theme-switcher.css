@@ -25,12 +25,14 @@
 
 select.advanced-theme-switcher-themes option.theme-child {
 	text-indent: 10px;
+	text-shadow:; none;
 }
 
+/*
 select.advanced-theme-switcher-themes optgroup option.theme-child {
 	text-indent: 0px;
 }
-
+*/
 select.advanced-theme-switcher-themes option.theme-child {
 	text-indent: 10px;
 }

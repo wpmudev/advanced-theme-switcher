@@ -3,7 +3,7 @@
 Plugin Name: Advanced Theme Switcher
 Plugin URI: http://premium.wpmudev.org/project/advanced-theme-switcher
 Description: Advanced Theme Switcher allows BuddyPress and Multisite users the chance to switch between different themes, or you the opportunity to profile different theme designs on a BuddyPress or Multisite.
-Version: 1.0.9.1
+Version: 1.0.9.2
 Author: Paul Menard (Incsub)
 Author URI: http://premium.wpmudev.org/
 WDP ID: 112
@@ -105,13 +105,18 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 				$instance = $instance_defaults;
 			}
 			
-			// Override any user defined. From here MUST always be 'menu
-			$instance['display_type'] = 'menu';
-			
 			// If admin wants to hide the toolba menu
 			if ((empty($instance['display_type'])) || ($instance['display_type'] == "false") || ($instance['display_type'] == "no")) 
 				return;
 			
+			// Override any user defined. From here MUST always be 'menu
+			//$instance['display_type'] = 'menu';
+						
+			if ($instance['display_type'] != 'menu') 
+				$instance['display_type_sub'] = $instance['display_type'];
+			
+			//echo "instance<pre>"; print_r($instance); echo "</pre>";
+
 			if (empty($this->current_themes))
 				$this->current_themes = wp_get_themes( array( 'allowed' => true, 'blog_id' => $wpdb->blogid ) );			
 
@@ -128,32 +133,45 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 					'meta' 		=> array ( 'class' => 'advanced-theme-switcher-menu-main' ) 
 				) 
 			);
-	    	$this->theme_switcher_markup($instance);
-	
-			if (wp_script_is('jquery')) {
-				?>
-				<script type="text/javascript">
-					jQuery(document).ready(function(){
-					    var ab_item_color 				= jQuery('#wpadminbar .ab-submenu .ab-empty-item').css('color');
-						console.log('ab_item_color['+ab_item_color+']');
 
-					    var ab_item_background_color 	= jQuery('#wpadminbar .ab-sub-wrapper').css('background-color');
-						console.log('ab_item_background_color['+ab_item_background_color+']');
+	    	$ts = $this->theme_switcher_markup($instance);
+			if ($instance['display_type'] != 'menu') {
+				//echo $ts;
+			    $wp_admin_bar->add_menu( 
+					array( 
+						'id' 		=> $instance['parent_menu_id'] .'-sub', 
+						'title' 	=> $ts, 
+						'parent' 	=> $instance['parent_menu_id'], 
+						'href'		=>	false,
+						'meta' 		=> array ( 'class' => 'advanced-theme-switcher-menu-main' ) 
+					) 
+				);
+			} else {
+			
+				if (wp_script_is('jquery')) {
+					?>
+					<script type="text/javascript">
+						jQuery(document).ready(function(){
+						    var ab_item_color 				= jQuery('#wpadminbar .ab-submenu .ab-empty-item').css('color');
+							console.log('ab_item_color['+ab_item_color+']');
+
+						    var ab_item_background_color 	= jQuery('#wpadminbar .ab-sub-wrapper').css('background-color');
+							console.log('ab_item_background_color['+ab_item_background_color+']');
 						
-						if (jQuery(jQuery('#wpadminbar .advanced-theme-switcher-menu-sub select.advanced-theme-switcher-themes').length)) {
-							console.log('#wpadminbar found');
-							jQuery('#wpadminbar .advanced-theme-switcher-menu-sub select').css('color', ab_item_color);
-							jQuery('#wpadminbar .advanced-theme-switcher-menu-sub select option').css('color', ab_item_color);
-							jQuery('#wpadminbar .advanced-theme-switcher-menu-sub select').css('background-color', ab_item_background_color);
-							jQuery('#wpadminbar .advanced-theme-switcher-menu-sub select option').css('background-color', ab_item_background_color);
-						} else {
-							console.log('#wpadminbar not present');
-						}
-					});
-				</script>
-				<?php
+							if (jQuery(jQuery('#wpadminbar .advanced-theme-switcher-menu-sub select.advanced-theme-switcher-themes').length)) {
+								console.log('#wpadminbar found');
+								jQuery('#wpadminbar .advanced-theme-switcher-menu-sub select').css('color', ab_item_color);
+								jQuery('#wpadminbar .advanced-theme-switcher-menu-sub select option').css('color', ab_item_color);
+								jQuery('#wpadminbar .advanced-theme-switcher-menu-sub select').css('background-color', ab_item_background_color);
+								jQuery('#wpadminbar .advanced-theme-switcher-menu-sub select option').css('background-color', ab_item_background_color);
+							} else {
+								console.log('#wpadminbar not present');
+							}
+						});
+					</script>
+					<?php
+				}
 			}
-	
 		}
 
 
@@ -315,8 +333,6 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 				
 			if (!$this->current_themes) return;
 		
-			//echo "themes<pre>"; print_r($themes); echo "</pre>";
-
 			if (!isset($instance['display_type'])) {
 				if (isset($instance['displaytype'])) {
 					$instance['display_type'] = $instance['displaytype'];
@@ -335,7 +351,6 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 					$instance['display_type_sub'] = $instance['display_type'];
 				//}
 			}
-			//echo "instance<pre>"; print_r($instance); echo "</pre>";
 
 			$themes_data = array();
 			foreach($this->current_themes as $theme_slug => $theme) {
@@ -357,17 +372,10 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 	
 			if ((!empty($themes_data)) && (is_array($themes_data))) {
 
-				//$current_active_theme_slug = wp_get_theme()->get_stylesheet();			
-				//echo "current_active_theme_slug=[". $current_active_theme_slug ."]<br />";
-				
-				//$preview_theme_name = $this->get_preview_theme_name();
-				//echo "preview_theme_name=[". $preview_theme_name ."]<br />";
-				
 				$themes_data_parents = array();
 				
 				// IF the instance wants to filter by the parent folder. 
 				if ((isset($instance['show_theme_parent_filter'])) && (!empty($instance['show_theme_parent_filter']))) {
-					//echo "show_theme_parent_filter[". $instance['show_theme_parent_filter'] ."]<br />";
 					$instance['show_theme_parent_filter'] = str_replace('\\', '/', $instance['show_theme_parent_filter']);
 					foreach ( $themes_data as $theme_slug => $theme_info ) {
 						$theme_slug = str_replace('\\', '/', $theme_slug);
@@ -465,7 +473,6 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 					}
 					
 				} else {
-					//echo "themes_data<pre>"; print_r($themes_data); echo "</pre>";
 
 					if ($instance['show_theme_parent'] == "no") {
 						$child_themes = array();
@@ -513,10 +520,6 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 				
 				ksort($themes_data, SORT_STRING);
 				
-				//if ($instance['display_type'] == "menu") {
-				//echo "themes_data<pre>"; print_r($themes_data); echo "</pre>";
-				//}
-
 				//if ((!isset($instance['displaycontainer'])) || ($instance['displaycontainer'] != 'menu')) {
 				if ( $instance['display_type'] == 'menu' ) {
 					global $wp_admin_bar;
@@ -526,7 +529,8 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 					$ts = '<ul class="advanced-theme-switcher-container">';
 
 				} else if ( $instance['display_type'] == 'dropdown' ) {
-					$ts = '<ul class="advanced-theme-switcher-container"><li><select class="advanced-theme-switcher-themes" onchange="location.href=this.options[this.selectedIndex].value;">';
+					//$ts = '<ul class="advanced-theme-switcher-container"><li><select class="advanced-theme-switcher-themes" onchange="location.href=this.options[this.selectedIndex].value;">';
+					$ts = '<select class="advanced-theme-switcher-themes" onchange="location.href=this.options[this.selectedIndex].value;">';
 					
 					//if ((isset($instance['show_theme_parent_filter'])) && (!empty($instance['show_theme_parent_filter']))) {
 					//	$ts .= '<option value="">'. $instance['show_theme_parent_filter'] .'</option>';
@@ -655,7 +659,8 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 
 				if ( $instance['display_type'] == 'menu' ) {
 				} else if ( 'dropdown' == $instance['display_type'] ) {
-					$ts .= '</select></li></ul>';
+					//$ts .= '</select></li></ul>';
+					$ts .= '</select>';
 				} else if ( 'list' == $instance['display_type'] ) {
 					$ts .= '</ul>';
 				}
@@ -725,7 +730,7 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 				
 				if ( (isset($theme_info_child['children'])) && (is_array($theme_info_child['children'])) && (count($theme_info_child['children'])) ) {
 
-					$ts_child_child .= $this->theme_switcher_markup_children($instance, $theme_info_child['children'], $level+1);
+					$ts_child_child = $this->theme_switcher_markup_children($instance, $theme_info_child['children'], $level+1);
 
 					if ($instance['display_type_sub'] == "dropdown") {
 						$ts_child .= $ts_child_child;
