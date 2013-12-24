@@ -3,7 +3,7 @@
 Plugin Name: Advanced Theme Switcher
 Plugin URI: http://premium.wpmudev.org/project/advanced-theme-switcher
 Description: Advanced Theme Switcher allows BuddyPress and Multisite users the chance to switch between different themes, or you the opportunity to profile different theme designs on a BuddyPress or Multisite.
-Version: 1.0.9.2
+Version: 1.0.9.3
 Author: Paul Menard (Incsub)
 Author URI: http://premium.wpmudev.org/
 WDP ID: 112
@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
 // Support for WPMU DEV Dashboard plugin
-include_once( dirname(__FILE__) . '/lib/dash-notices/wpmudev-dash-notification.php');
+//include_once( dirname(__FILE__) . '/lib/dash-notices/wpmudev-dash-notification.php');
 
 /**
  * Advanced Theme Switcher Class
@@ -38,7 +38,7 @@ include_once( dirname(__FILE__) . '/lib/dash-notices/wpmudev-dash-notification.p
 if ( !class_exists('Advanced_Theme_Switcher') ) {
 	class Advanced_Theme_Switcher {
 
-		var $plugin_version = "1.0.9";
+		var $plugin_version = "1.0.9.3";
 	
 		var $current_themes;
 		
@@ -297,8 +297,8 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 	        /* Get theme name from var */
 			if ( !empty( $this->queried_theme ) ) {
 				$queried_theme = $this->queried_theme;
-			} else {
-				$queried_theme = get_query_var('theme-preview');
+			} else if ((isset($_GET['theme-preview'])) && (!empty($_GET['theme-preview']))) {
+				$queried_theme = esc_attr($_GET['theme-preview']);
 			}
 
 	        $queried_theme =  urldecode( $queried_theme );

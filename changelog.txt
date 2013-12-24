@@ -2,8 +2,10 @@
 Authors: Paul Menard (Incsub)
 
 == Changelog ==
-= 1.0.9.2 =
+= 1.0.9.3 =
+* Corrected issue where get_query_var was causing fatal error with WPML installed. 
 
+= 1.0.9.2 =
 * Corrected reported issue where ADV_THEME_SWITCHER_TOOLBAR define was not accepting 'dropdown' value for 'display_type' parameter. 
 * Removed outer <ul></ul> wrapper when display_type set to menu or dropdown. Only used when display_type set to 'list'
 
