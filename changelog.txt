@@ -2,6 +2,9 @@
 Authors: Paul Menard (Incsub)
 
 == Changelog ==
+= 1.0.9.4 =
+* Corrected reported issue where widgets where not properly being changed when switching themes.
+
 = 1.0.9.3 =
 * Corrected issue where get_query_var was causing fatal error with WPML installed. 
 

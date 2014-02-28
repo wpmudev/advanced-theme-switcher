@@ -3,8 +3,8 @@
 Plugin Name: Advanced Theme Switcher
 Plugin URI: http://premium.wpmudev.org/project/advanced-theme-switcher
 Description: Advanced Theme Switcher allows BuddyPress and Multisite users the chance to switch between different themes, or you the opportunity to profile different theme designs on a BuddyPress or Multisite.
-Version: 1.0.9.3
-Author: WPMU DEV
+Version: 1.0.9.4
+Author: Paul Menard (Incsub)
 Author URI: http://premium.wpmudev.org/
 WDP ID: 112
 License: GNU General Public License (Version 2 - GPLv2)
@@ -38,7 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 if ( !class_exists('Advanced_Theme_Switcher') ) {
 	class Advanced_Theme_Switcher {
 
-		var $plugin_version = "1.0.9.3";
+		var $plugin_version = "1.0.9.4";
 	
 		var $current_themes;
 		
@@ -56,7 +56,10 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 	        add_action( 'init', 					array( &$this, 'set_cookie' ) );
 	        add_action( 'init', 					array( &$this, 'load_plugin_textdomain' ) );
 
-			add_filter( 'stylesheet', 				array (&$this, 'get_stylesheet' ) );
+			add_filter( 'sidebars_widgets',			array( &$this, 'sidebars_widgets' ) );
+			//add_action( 'wp_footer',				array( &$this, 'wp_footer' ) );
+			
+			add_filter( 'stylesheet', 				array( &$this, 'get_stylesheet' ) );
 			add_filter( 'template', 				array( &$this, 'get_template' ) );
 		
 			add_action( 'admin_bar_menu', 			array( &$this, 'add_nodes_and_groups_to_toolbar'), 999 );
@@ -68,6 +71,41 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 	        
 		}
 
+		function sidebars_widgets($current_sidebar_widgets) {
+			
+			$current_stylesheet = get_option( 'stylesheet' );
+			//echo "current_stylesheet[". $current_stylesheet ."]<br />";
+			$preview_stylesheet	= $this->get_stylesheet($current_stylesheet);
+			//echo "preview_stylesheet[". $preview_stylesheet ."]<br />";
+			if ((empty($preview_stylesheet)) || ($current_stylesheet == $preview_stylesheet)) {
+				return $current_sidebar_widgets;
+			}
+
+			$theme_mods_key = 'theme_mods_'. $preview_stylesheet;
+			//echo "theme_mods_key[". $theme_mods_key ."]<br />";
+			$theme_mods = get_option( $theme_mods_key );
+			//echo "theme_mods<pre>"; print_r($theme_mods); echo "</pre>";
+			if (isset($theme_mods['sidebars_widgets']['data'])) {
+				return $theme_mods['sidebars_widgets']['data'];
+			}
+			return $current_sidebar_widgets;
+		}
+		
+		function wp_footer() {
+			global  $wp_registered_sidebars, $wp_registered_widgets;
+			//echo "wp_registered_sidebars<pre>"; print_r($wp_registered_sidebars); echo "</pre>";
+			//echo "wp_registered_widgets<pre>"; print_r($wp_registered_widgets); echo "</pre>";
+
+			//$theme_mods_attitude = get_option('theme_mods_attitude');
+			//echo "theme_mods_attitude<pre>"; print_r($theme_mods_attitude); echo "</pre>";
+			
+			//$mods = get_theme_mods();
+			//echo "mods<pre>"; print_r($mods); echo "</pre>";
+			
+			$sidebars_widgets = get_option('sidebars_widgets', array());
+			echo "sidebars_widgets<pre>"; print_r($sidebars_widgets); echo "</pre>";
+		}
+		
 		function load_css() {
 			if ( !is_admin_bar_showing() )
 		        return;
@@ -241,7 +279,7 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 
 			if (is_admin())
 				return $stylesheet;
-				
+			
 	        /* Get theme name */
 			$theme = $this->get_preview_theme_name();
 			if ( empty( $theme ) )
@@ -255,6 +293,9 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 			/* Don't let people peek at unpublished themes. */
 			if ( isset( $theme['Status'] ) && $theme['Status'] != 'publish' )
 				return $stylesheet;
+
+			//echo "theme<pre>"; print_r($theme); echo "</pre>";
+			//apply_filters( "theme_mod_{$name}", $default );
 
 			return $theme['Stylesheet'];
 		}
@@ -301,10 +342,10 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 				$queried_theme = esc_attr($_GET['theme-preview']);
 			}
 
-	        $queried_theme =  urldecode( $queried_theme );
 
 			/* Get theme name from cookie if no var is set */
 			if ( !empty( $queried_theme ) ) {
+		        $queried_theme =  urldecode( $queried_theme );
 				return $queried_theme;
 			} elseif ( !empty( $_COOKIE[ 'advanced-theme-switcher-' . COOKIEHASH ] ) ) {
 				return $_COOKIE[ 'advanced-theme-switcher-' . COOKIEHASH ];
@@ -363,7 +404,7 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 				$theme_info['version'] 		= $theme->display('Version');
 				$theme_info['template'] 	= $theme->get_template();
 				$theme_info['stylesheet'] 	= $theme->get_stylesheet();
-				$theme_info['url'] 			= add_query_arg( 'theme-preview', urlencode( $theme_slug ), get_option('home') );
+				$theme_info['url'] 			= add_query_arg( 'theme-preview', urlencode( $theme_slug ) );
 				$theme_info['slug']			= $slug;
 				$theme_info['is_group']		= false;
 				
