@@ -4,14 +4,16 @@ Plugin Name: Advanced Theme Switcher
 Plugin URI: http://premium.wpmudev.org/project/advanced-theme-switcher
 Description: Advanced Theme Switcher allows BuddyPress and Multisite users the chance to switch between different themes, or you the opportunity to profile different theme designs on a BuddyPress or Multisite.
 Version: 1.0.9.4
-Author: Paul Menard (Incsub)
+Author: WPMU DEV
 Author URI: http://premium.wpmudev.org/
 WDP ID: 112
 License: GNU General Public License (Version 2 - GPLv2)
 */
 
 /*
-Copyright 2007-2011 Incsub (http://incsub.com)
+Copyright 2009-2014 Incsub (http://incsub.com)
+Author - Paul Menard
+Contributors - 
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License (Version 2 - GPLv2) as published by
