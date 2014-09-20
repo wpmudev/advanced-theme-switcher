@@ -1,6 +1,8 @@
 === Advanced Theme Switcher ===
 Authors: Paul Menard (Incsub)
 
+* Fixed issue with cookies being set across the entire network on multisite subdirectory setups
+
 == Changelog ==
 = 1.0.9.4 =
 * Corrected reported issue where widgets where not properly being changed when switching themes.

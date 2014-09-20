@@ -21,12 +21,12 @@ the Free Software Foundation.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA	02111-1307	USA
 */
 
 
@@ -44,19 +44,19 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 	
 		var $current_themes;
 		
-	    /** @var string $queried_theme The name of the theme queried */
+			 /** @var string $queried_theme The name of the theme queried */
 		var $queried_theme = '';
 
-	    /**
-	     * Constructor.
-	     *
-	     * @return void
-	     **/
+			 /**
+				* Constructor.
+				*
+				* @return void
+				**/
 		function Advanced_Theme_Switcher() {
 
-	        add_action( 'setup_theme', 				array( &$this, 'parse_theme_preview_request' ) );
-	        add_action( 'init', 					array( &$this, 'set_cookie' ) );
-	        add_action( 'init', 					array( &$this, 'load_plugin_textdomain' ) );
+			add_action( 'setup_theme', 				array( &$this, 'parse_theme_preview_request' ) );
+			add_action( 'init', 					array( &$this, 'set_cookie' ) );
+			add_action( 'init', 					array( &$this, 'load_plugin_textdomain' ) );
 
 			add_filter( 'sidebars_widgets',			array( &$this, 'sidebars_widgets' ) );
 			//add_action( 'wp_footer',				array( &$this, 'wp_footer' ) );
@@ -70,7 +70,7 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 			add_shortcode( 'adv_theme_switcher', 	array(&$this, 'process_shortcode') );
 			
 			register_activation_hook( __FILE__, array( &$this, 'plugin_activation_proc' ) );
-	        
+					 
 		}
 
 		function sidebars_widgets($current_sidebar_widgets) {
@@ -94,7 +94,7 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 		}
 		
 		function wp_footer() {
-			global  $wp_registered_sidebars, $wp_registered_widgets;
+			global	 $wp_registered_sidebars, $wp_registered_widgets;
 			//echo "wp_registered_sidebars<pre>"; print_r($wp_registered_sidebars); echo "</pre>";
 			//echo "wp_registered_widgets<pre>"; print_r($wp_registered_widgets); echo "</pre>";
 
@@ -110,7 +110,7 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 		
 		function load_css() {
 			if ( !is_admin_bar_showing() )
-		        return;
+						return;
 
 			if (is_admin())
 				return;
@@ -121,10 +121,10 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 
 		function add_nodes_and_groups_to_toolbar( $wp_admin_bar ) {
 
-		    global $wp_admin_bar, $wpdb;
+				global $wp_admin_bar, $wpdb;
 
 			if ( !is_admin_bar_showing() )
-		        return;
+						return;
 
 			if (is_admin())
 				return;
@@ -163,9 +163,9 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 			// IF no themes the don't add new menu node
 			if (!$this->current_themes) return;
 
-		    /* Add the main siteadmin menu item */
+				/* Add the main siteadmin menu item */
 			$instance['parent_menu_id'] = 'advanced-theme-switcher-menu';
-		    $wp_admin_bar->add_menu( 
+				$wp_admin_bar->add_menu( 
 				array( 
 					'id' 		=> $instance['parent_menu_id'], 
 					'title' 	=> __('Themes', 'advanced-theme-switcher'), 
@@ -174,10 +174,10 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 				) 
 			);
 
-	    	$ts = $this->theme_switcher_markup($instance);
+			 	$ts = $this->theme_switcher_markup($instance);
 			if ($instance['display_type'] != 'menu') {
 				//echo $ts;
-			    $wp_admin_bar->add_menu( 
+					 $wp_admin_bar->add_menu( 
 					array( 
 						'id' 		=> $instance['parent_menu_id'] .'-sub', 
 						'title' 	=> $ts, 
@@ -192,10 +192,10 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 					?>
 					<script type="text/javascript">
 						jQuery(document).ready(function(){
-						    var ab_item_color 				= jQuery('#wpadminbar .ab-submenu .ab-empty-item').css('color');
+								var ab_item_color 				= jQuery('#wpadminbar .ab-submenu .ab-empty-item').css('color');
 							console.log('ab_item_color['+ab_item_color+']');
 
-						    var ab_item_background_color 	= jQuery('#wpadminbar .ab-sub-wrapper').css('background-color');
+								var ab_item_background_color 	= jQuery('#wpadminbar .ab-sub-wrapper').css('background-color');
 							console.log('ab_item_background_color['+ab_item_background_color+']');
 						
 							if (jQuery(jQuery('#wpadminbar .advanced-theme-switcher-menu-sub select.advanced-theme-switcher-themes').length)) {
@@ -238,32 +238,42 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 			return $this->theme_switcher_markup($instance);
 		}
 
-	    /**
-	     * Set cookie with the theme name queried.
-	     *
-	     * @return void
-	     **/
+	 /**
+		* Set cookie with the theme name queried.
+		*
+		* @return void
+		**/
 		function set_cookie() {
 			$expire = time() + 30000000;
-			if ( !empty( $this->queried_theme ) )
-				setcookie( 'advanced-theme-switcher-' . COOKIEHASH, stripslashes( $this->queried_theme ), $expire, COOKIEPATH );			
+			$cookie_path = COOKIEPATH;
+			
+			if ( is_multisite() && defined('SUBDOMAIN_INSTALL') && ! SUBDOMAIN_INSTALL ) {
+				/*
+				For multisite setups using subdirectories we need to set the cookiepath
+				so the cookie doesn't affect ALL sites
+				*/
+				$blog = get_blog_details();
+				$cookie_path = $blog->path;
+			}
+			
+			setcookie('advanced-theme-switcher-' . COOKIEHASH, stripslashes($this->queried_theme), $expire, $cookie_path);
 		}
 
-	    /**
-	     * Loads the language file from the "languages" directory.
-	     *
-	     * @return void
-	     **/
-	    function load_plugin_textdomain() {
-	
-	        load_plugin_textdomain( 'advanced-theme-switcher', null, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
-	    }
+	 /**
+		* Loads the language file from the "languages" directory.
+		*
+		* @return void
+		**/
+	 function load_plugin_textdomain() {
 
-	    /**
-	     * Parse the queried theme var.
-	     *
-	     * @return void
-	     **/
+			 load_plugin_textdomain( 'advanced-theme-switcher', null, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+	 }
+
+	 /**
+		* Parse the queried theme var.
+		*
+		* @return void
+		**/
 		function parse_theme_preview_request() {
 			if ( !isset($_GET['theme-preview']))
 				return;
@@ -271,25 +281,25 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 			$this->queried_theme = esc_attr($_GET['theme-preview']);
 		}
 
-	    /**
-	     *  Filter stylesheet path
-	     *
-	     * @param <type> $stylesheet
-	     * @return <type>
-	     */
+			 /**
+				*	 Filter stylesheet path
+				*
+				* @param <type> $stylesheet
+				* @return <type>
+				*/
 		function get_stylesheet( $stylesheet ) {
 
 			if (is_admin())
 				return $stylesheet;
 			
-	        /* Get theme name */
+					 /* Get theme name */
 			$theme = $this->get_preview_theme_name();
 			if ( empty( $theme ) )
 				return $stylesheet;
 			
-	        /* Get theme by name */
+					 /* Get theme by name */
 			$theme = wp_get_theme( $theme );
-	        if ( empty( $theme ) )
+					 if ( empty( $theme ) )
 				return $stylesheet;
 			
 			/* Don't let people peek at unpublished themes. */
@@ -302,23 +312,23 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 			return $theme['Stylesheet'];
 		}
 
-	    /**
-	     * Filter template path
-	     *
-	     * @param <type> $template
-	     * @return <type>
-	     */
+			 /**
+				* Filter template path
+				*
+				* @param <type> $template
+				* @return <type>
+				*/
 		function get_template( $template ) {
 
 			if (is_admin())
 				return $template;
 				
-	        /* Get theme name */
+					 /* Get theme name */
 			$theme = $this->get_preview_theme_name();
 			if ( empty( $theme ) )
 				return $template;
 			
-	        /* Get theme by name */
+					 /* Get theme by name */
 			$theme = wp_get_theme( $theme );
 			if ( empty( $theme ) )
 				return $template;
@@ -330,14 +340,14 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 			return $theme['Template'];
 		}
 
-	    /**
-	     * Get selected theme name.
-	     *
-	     * @return string|NULL Selected theme name.
-	     **/
+			 /**
+				* Get selected theme name.
+				*
+				* @return string|NULL Selected theme name.
+				**/
 		function get_preview_theme_name() {
 
-	        /* Get theme name from var */
+					 /* Get theme name from var */
 			if ( !empty( $this->queried_theme ) ) {
 				$queried_theme = $this->queried_theme;
 			} else if ((isset($_GET['theme-preview'])) && (!empty($_GET['theme-preview']))) {
@@ -347,7 +357,7 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 
 			/* Get theme name from cookie if no var is set */
 			if ( !empty( $queried_theme ) ) {
-		        $queried_theme =  urldecode( $queried_theme );
+						$queried_theme =	urldecode( $queried_theme );
 				return $queried_theme;
 			} elseif ( !empty( $_COOKIE[ 'advanced-theme-switcher-' . COOKIEHASH ] ) ) {
 				return $_COOKIE[ 'advanced-theme-switcher-' . COOKIEHASH ];
@@ -360,14 +370,14 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 			delete_transient( 'wpmudev-advanced-theme-'. $this->plugin_version );			
 		}
 
-	    /**
-	     * Widget output.
-	     *
-	     * @global <type> $wp_rewrite
-	     * @param <type> $style
-	     * @param <type> $instance
-	     * @return <type>
-	     */
+			 /**
+				* Widget output.
+				*
+				* @global <type> $wp_rewrite
+				* @param <type> $style
+				* @param <type> $instance
+				* @return <type>
+				*/
 		function theme_switcher_markup( $instance = array() ) {
 			global $wpdb;
 			
@@ -686,7 +696,7 @@ if ( !class_exists('Advanced_Theme_Switcher') ) {
 										'id'		=>	$instance['sub_menu_id'] .'-sub',
 										'title' 	=> 	$ts, 
 										'href' 		=> 	false, 
-										'meta' 		=> 	array ( 'class' =>  $item_class) 
+										'meta' 		=> 	array ( 'class' =>	 $item_class) 
 									) 
 								);
 							}
