@@ -1,5 +1,7 @@
 # WordPress Theme Switcher Plugin - WPMU DEV
 
+**INACTIVE NOTICE: This plugin is unsupported by WPMUDEV, we've published it here for those technical types who might want to fork and maintain it for their needs.**
+
 # Theme Switcher
 
 Let users switch between themes from the front end of a site – in a post, a page, a widget or right from the WordPress toolbar.
